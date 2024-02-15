@@ -14,8 +14,10 @@ std::vector<std::wstring> ADB::GetAllDevices()
 		if (tabIndex == std::string::npos)
 			break;
 		std::wstring devName = devices.substr(0, tabIndex);
-		result.push_back(devName);
 		size_t lineEndIndex = devices.find_first_of(L"\n");
+		std::wstring deviceStatus = devices.substr(tabIndex+1, 6);
+		if(deviceStatus == L"device")
+			result.push_back(devName);
 		devices = devices.substr(lineEndIndex+1);
 	}
 	return result;

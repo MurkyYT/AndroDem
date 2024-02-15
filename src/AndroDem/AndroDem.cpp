@@ -440,8 +440,8 @@ void ShowRightClickMenu(HWND hWnd)
 }
 void ConnectToDevice(std::wstring& device)
 {
+	DisconnectFromDevice();
 	if (device == config.currentDevice && m_Connected) {
-		DisconnectFromDevice();
 		config.currentDevice = L"";
 		return;
 	}
