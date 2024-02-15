@@ -51,7 +51,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 	LoadConfig();
-	MessageBox(NULL, GetCurrentDir(), L"Test", MB_OK);
 	if (!FilesPresent())
 	{
 		MessageBox(NULL, L"Not all files present in data folder, please redownload them.", L"Error", MB_OK | MB_ICONERROR);
@@ -102,7 +101,7 @@ void ParseArgv(LPWSTR lpCmdLine)
 }
 BOOL FilesPresent()
 {
-	const wchar_t* buf = GetCurrentDir();
+	const wchar_t* buf = GetCurrentDir().c_str();
 	std::wstring adbExe = ADB::GetADBPath();
 	std::wstring adbApiDLL = std::wstring(buf).append(L"\\data\\AdbWinApi.dll");
 	std::wstring adbApiUSBDLL = std::wstring(buf).append(L"\\data\\AdbWinUsbApi.dll");
@@ -459,7 +458,7 @@ void ConnectToDevice(std::wstring& device)
 		return;
 	}
 	// Windows on auto startup default dir is c:\system32\windows
-	const wchar_t* buf = GetCurrentDir();
+	const wchar_t* buf = GetCurrentDir().c_str();
 	std::wstring pushLocal = std::wstring(L"push \"").append(buf).append(L"\\data\\classes.dex\" \"data/local/tmp\"");
 	config.currentDevice = device;
 	if(ADB::SendCommandToDevice(pushLocal.c_str(), config.currentDevice).find(L"adb: error: failed to copy") != std::string::npos)

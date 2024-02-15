@@ -2,5 +2,5 @@
 #include <Windows.h>
 #include <sys/stat.h>
 #include <string>
-const wchar_t* GetCurrentDir();
+std::wstring GetCurrentDir();
 BOOL FileExists(const char* name);
