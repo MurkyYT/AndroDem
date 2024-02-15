@@ -1,0 +1,52 @@
+#include "resource.h"
+//
+// Version
+//
+
+1 VERSIONINFO
+ FILEVERSION COMMA_VER
+ PRODUCTVERSION COMMA_VER
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "Murky"
+            VALUE "FileDescription", "AndroDem"
+            VALUE "FileVersion", VER
+            VALUE "InternalName", "AndroDem"
+            VALUE "LegalCopyright", "Murky, 2024"
+            VALUE "OriginalFilename", "AndroDem.exe"
+            VALUE "ProductName", "AndroDem"
+            VALUE "ProductVersion", VER
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+//
+// Icon
+//
+IDI_ANDRODEM            ICON                    "icons\\main.ico"
+
+IDI_LEVEL0WIFI          ICON                    "icons\\Level0Wifi.ico"
+
+IDI_LEVEL1WIFI          ICON                    "icons\\Level1Wifi.ico"
+
+IDI_LEVEL2WIFI          ICON                    "icons\\Level2Wifi.ico"
+
+IDI_LEVEL3WIFI          ICON                    "icons\\Level3Wifi.ico"
+
+IDI_LEVEL4WIFI          ICON                    "icons\\Level4Wifi.ico"
+
+IDI_NOWIFI              ICON                    "icons\\NoWifi.ico"
+//
+// String Table
+//
+STRINGTABLE
+BEGIN
+    IDC_ANDRODEM            "AndroDem"
+    IDS_APP_TITLE           "AndroDem"
+END
