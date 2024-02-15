@@ -1,15 +1,10 @@
 #include "WindowsUtils.h"
-wchar_t* GetCurrentDir()
+const wchar_t* GetCurrentDir()
 {
-	wchar_t* buf = NULL;
-	UINT32 buflen = 0;
-	buflen = GetCurrentDirectoryW(buflen, buf);
-	buf = (PWSTR)malloc(sizeof(WCHAR) * buflen);
-	if (0 == GetCurrentDirectoryW(buflen, buf))
-	{
-		free(buf);
-	}
-	return buf;
+	WCHAR buffer[MAX_PATH] = { 0 };
+	GetModuleFileNameW(NULL, buffer, MAX_PATH);
+	std::string::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+	return std::wstring(buffer).substr(0, pos).c_str();
 }
 BOOL FileExists(const char* name)
 {

@@ -51,6 +51,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 	LoadConfig();
+	MessageBox(NULL, GetCurrentDir(), L"Test", MB_OK);
 	if (!FilesPresent())
 	{
 		MessageBox(NULL, L"Not all files present in data folder, please redownload them.", L"Error", MB_OK | MB_ICONERROR);
@@ -101,7 +102,7 @@ void ParseArgv(LPWSTR lpCmdLine)
 }
 BOOL FilesPresent()
 {
-	wchar_t* buf = GetCurrentDir();
+	const wchar_t* buf = GetCurrentDir();
 	std::wstring adbExe = ADB::GetADBPath();
 	std::wstring adbApiDLL = std::wstring(buf).append(L"\\data\\AdbWinApi.dll");
 	std::wstring adbApiUSBDLL = std::wstring(buf).append(L"\\data\\AdbWinUsbApi.dll");
@@ -179,12 +180,24 @@ void UpdateWifiStatus()
 	lastSignalIndex = wifiStatus.find(L"mLastSignalLevel ");
 	if (lastSignalIndex == std::string::npos)
 		goto NO_WIFI;
+	//Start from lastsignalindex + length of "mLastSignalLevel " untill lastsignalindex + length of "mLastSignalLevel " + "\r\n" length
 	stringSignalStrength = wifiStatus.substr(lastSignalIndex + 17, lastSignalIndex + 17 + 2);
 	replacew(deviceName, L"\n", L"");
 	replacew(deviceName, L"\r", L"");
+	/*Start from SSID index + length of "SSID: " untill index of "," minus the(SSID index + the length of ssid index) 
+	* to find the length of the ssid name
+	* example:
+	* "SSID: ExampleWifi,"
+	* from (0 + 6) untill (17 - (0 + 6)) = 11 which is the length of ExampleWifi  
+	*/
 	SSID = wifiStatus.substr(wifiStatus.find(L"SSID: ") + 6, wifiStatus.find(L",") - (wifiStatus.find(L"SSID: ") + 6));
+	/*
+	* Newer android report ssid name with '"'
+	* Check if any exist, if so remove them with substr from index 1 untill the size of the string - 1 - the '\n' char
+	*/
 	if (SSID.find('"') != std::string::npos)
 		SSID = SSID.substr(1, SSID.size() - 2);
+	// The same as the ssid tactic, add one to the to include the 's' in "Mbps"
 	linkSpeed = wifiStatus.substr(wifiStatus.find(L"speed: ") + 7, wifiStatus.find(L"s,") - (wifiStatus.find(L"speed: ") + 7) + 1);
 	signalStrength = stringSignalStrength[0] - '0';
 	// Device is probably not connected to a wifi network
@@ -446,7 +459,7 @@ void ConnectToDevice(std::wstring& device)
 		return;
 	}
 	// Windows on auto startup default dir is c:\system32\windows
-	wchar_t* buf = GetCurrentDir();
+	const wchar_t* buf = GetCurrentDir();
 	std::wstring pushLocal = std::wstring(L"push \"").append(buf).append(L"\\data\\classes.dex\" \"data/local/tmp\"");
 	config.currentDevice = device;
 	if(ADB::SendCommandToDevice(pushLocal.c_str(), config.currentDevice).find(L"adb: error: failed to copy") != std::string::npos)

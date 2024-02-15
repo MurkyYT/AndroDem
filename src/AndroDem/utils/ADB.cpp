@@ -140,13 +140,13 @@ SOCKET ADB::ConnectSocket(BOOL waitUntillComplete)
 }
 BOOL ADB::AdbWrite(const char* cmd, SOCKET socket)
 {
-	int size = strlen(cmd);
+	size_t size = strlen(cmd);
 	char* szSize = (char*)malloc(5 + size);
 	if (szSize) 
 	{
-		sprintf_s(szSize,5, "%04x", strlen(cmd));
-		strcat_s(szSize,5+size, cmd);
-		return (send(socket, szSize, size + 4, 0) == size);
+		sprintf_s(szSize,5, "%04x", (UINT)size);
+		strcat_s(szSize,5+ size, cmd);
+		return (send(socket, szSize, (int)(size + 4), 0) == size);
 	}
 	return FALSE;
 }
@@ -256,7 +256,7 @@ std::wstring ADB::GetADBPath()
 	if (!ADB::m_adbPath.empty())
 		return ADB::m_adbPath;
 
-	wchar_t* buffer = GetCurrentDir();
+	const wchar_t* buffer = GetCurrentDir();
 
 	ADB::m_adbPath = std::wstring(buffer).append(L"\\data\\adb.exe");
 	return ADB::m_adbPath;
