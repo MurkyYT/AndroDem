@@ -8,7 +8,7 @@
   <img width="auto" src="https://img.shields.io/github/downloads/murkyyt/androdem/total?color=brightgreen&label=Total%20downloads&style=for-the-badge" alt="Total Downloads">
 </p>
 
-<h1 align="center">Description</h1>
+## Description
 
 **AndroDem** (short of Android Modem) is an application that utilizes [ADB](https://developer.android.com/tools/adb) to gather information about the wifi status of the selected device.
 
@@ -21,8 +21,9 @@
 - Can enable/disable device display
 - Can restart device WiFi
 
-**Images of the app:**  
+## Screenshots
 ![right-click-menu](Images/menuimage.png)
+
 ## FAQ
 ### **App doesn't show wifi status**
 1. Make sure you enabled [ADB debugging](https://developer.android.com/studio/debug/dev-options#enable)
