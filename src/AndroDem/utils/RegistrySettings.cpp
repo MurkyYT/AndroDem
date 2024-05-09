@@ -26,7 +26,7 @@ std::wstring RegistrySettings::getWideString(const std::string& name)
 }
 BOOL RegistrySettings::getString(const std::string& name,LPCWSTR* buf)
 {
-	*buf = L"";
+	*buf = L"\0";
 	std::wstring wValue = s2ws(name);
 	DWORD dwBufSize = 0;
 	DWORD valueType = 0;
@@ -42,7 +42,7 @@ BOOL RegistrySettings::getString(const std::string& name,LPCWSTR* buf)
 			(BYTE*)(*buf), &dwBufSize);
 		return TRUE;
 	}
-	return FALSE;;
+	return FALSE;
 }
 BOOL RegistrySettings::getBool(const std::string& name, BOOL* buf)
 {

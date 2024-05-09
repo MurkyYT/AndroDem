@@ -8,6 +8,9 @@ std::wstring GetCurrentDir()
 }
 BOOL FileExists(const char* name)
 {
-	struct stat   buffer;
-	return (stat(name, &buffer) == 0);
+	return _access_s(name, 0) != ENOENT;
+}
+BOOL FileExists(const wchar_t* name)
+{
+	return _waccess_s(name, 0) != ENOENT;
 }

@@ -256,7 +256,8 @@ std::wstring ADB::GetADBPath()
 	if (!ADB::m_adbPath.empty())
 		return ADB::m_adbPath;
 
-	const wchar_t* buffer = GetCurrentDir().c_str();
+	std::wstring path = GetCurrentDir();
+	const wchar_t* buffer = path.c_str();
 
 	ADB::m_adbPath = std::wstring(buffer).append(L"\\data\\adb.exe");
 	return ADB::m_adbPath;

@@ -101,16 +101,17 @@ void ParseArgv(LPWSTR lpCmdLine)
 }
 BOOL FilesPresent()
 {
-	const wchar_t* buf = GetCurrentDir().c_str();
+	std::wstring path = GetCurrentDir();
+	const wchar_t* buf = path.c_str();
 	std::wstring adbExe = ADB::GetADBPath();
 	std::wstring adbApiDLL = std::wstring(buf).append(L"\\data\\AdbWinApi.dll");
 	std::wstring adbApiUSBDLL = std::wstring(buf).append(L"\\data\\AdbWinUsbApi.dll");
 	std::wstring classesDex = std::wstring(buf).append(L"\\data\\classes.dex");
 
-	return FileExists(ws2s(adbExe).c_str())
-		&& FileExists(ws2s(adbApiDLL).c_str())
-		&& FileExists(ws2s(adbApiUSBDLL).c_str())
-		&& FileExists(ws2s(classesDex).c_str());
+	return FileExists(adbExe.c_str())
+		&& FileExists(adbApiDLL.c_str())
+		&& FileExists(adbApiUSBDLL.c_str())
+		&& FileExists(classesDex.c_str());
 }
 DWORD WINAPI TimerProc()
 {
@@ -458,7 +459,8 @@ void ConnectToDevice(std::wstring& device)
 		return;
 	}
 	// Windows on auto startup default dir is c:\system32\windows
-	const wchar_t* buf = GetCurrentDir().c_str();
+	std::wstring path = GetCurrentDir();
+	const wchar_t* buf = path.c_str();
 	std::wstring pushLocal = std::wstring(L"push \"").append(buf).append(L"\\data\\classes.dex\" \"data/local/tmp\"");
 	config.currentDevice = device;
 	if(ADB::SendCommandToDevice(pushLocal.c_str(), config.currentDevice).find(L"adb: error: failed to copy") != std::string::npos)
