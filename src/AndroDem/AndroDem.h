@@ -14,3 +14,4 @@
 #include "utils/RegistrySettings.h"
 #include "utils/WindowsUtils.h"
 #include "config.h"
+#include "utils/DarkMode.h"

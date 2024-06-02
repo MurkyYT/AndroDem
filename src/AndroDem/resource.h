@@ -1,7 +1,7 @@
 // Used by AndroDem.rc
 //
-#define VER "1.0.1"
-#define COMMA_VER 1,0,1
+#define VER "1.0.2"
+#define COMMA_VER 1,0,2
 #define IDI_ANDRODEM                    100
 #define IDI_LEVEL0WIFI                  101
 #define IDI_LEVEL1WIFI                  102
@@ -18,3 +18,4 @@
 #define IDM_RESTARTWIFI                 113
 #define IDM_SAVELOGS                    114
 #define IDM_STARTWITHWINDOWS            115
+#define IDM_REBOOTDEVICE				116

@@ -25,6 +25,7 @@ HICON hMainIcon, hNoWifiIcon, hLevel0Icon, hLevel1Icon, hLevel2Icon, hLevel3Icon
 RegistrySettings settings(L"Murky", L"AndroDem");
 Config config;
 BOOL m_Connected = FALSE;
+std::wstring m_deviceName;
 #pragma endregion
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -42,6 +43,7 @@ void SaveConfig();
 void ConnectToLastDevice();
 void SetAutoStartup(BOOL enabled);
 BOOL FilesPresent();
+std::wstring GetDeviceName(std::wstring serialNo);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -72,6 +74,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	ConnectToLastDevice();
 	SetAutoStartup(config.runOnStartup);
+
+	InitDarkMode();
+	AllowDarkModeForApp(TRUE);
 
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
@@ -165,9 +170,12 @@ void SetAutoStartup(BOOL enabled)
 }
 void UpdateWifiStatus()
 {
+	if (config.currentDevice.empty())
+		return;
+	if (!m_Connected)
+		ConnectToDevice(config.currentDevice);
 	std::wstring wifiStatus = ADB::SendCommandToDeviceShell("dumpsys wifi | grep -E \"mWifiInfo |SignalLevel\"", config.currentDevice,TRUE);
 	std::wstring stringSignalStrength;
-	std::wstring deviceName = ADB::SendCommandToDeviceShell("settings get global device_name", config.currentDevice);
 	std::wstring SSID;
 	std::wstring linkSpeed;
 	size_t lastSignalIndex = -1;
@@ -175,15 +183,11 @@ void UpdateWifiStatus()
 	//Couldn't get any wifi statistics about the device
 	if (wifiStatus == L"FAIL" || wifiStatus.empty())
 		goto NO_WIFI;
-	if (deviceName == L"FAIL" || deviceName.empty())
-		deviceName = ADB::SendCommandToDeviceShell("getprop ro.product.model", config.currentDevice);
 	lastSignalIndex = wifiStatus.find(L"mLastSignalLevel ");
 	if (lastSignalIndex == std::string::npos)
 		goto NO_WIFI;
 	//Start from lastsignalindex + length of "mLastSignalLevel " untill lastsignalindex + length of "mLastSignalLevel " + "\r\n" length
 	stringSignalStrength = wifiStatus.substr(lastSignalIndex + 17, lastSignalIndex + 17 + 2);
-	replacew(deviceName, L"\n", L"");
-	replacew(deviceName, L"\r", L"");
 	/*Start from SSID index + length of "SSID: " untill index of "," minus the(SSID index + the length of ssid index) 
 	* to find the length of the ssid name
 	* example:
@@ -224,14 +228,24 @@ void UpdateWifiStatus()
 		niData.hIcon = hNoWifiIcon;
 		break;
 	}
-	wcscpy_s(niData.szTip, std::wstring(deviceName).append(L": ").append(SSID).append(L" (").append(linkSpeed).append(L")").c_str());
+	wcscpy_s(niData.szTip, std::wstring(m_deviceName).append(L": ").append(SSID).append(L" (").append(linkSpeed).append(L")").c_str());
 	Shell_NotifyIcon(NIM_MODIFY, &niData);
 	return;
 NO_WIFI:
 	niData.hIcon = hNoWifiIcon;
 	wcscpy_s(niData.szTip, L"No wifi found");
 	Shell_NotifyIcon(NIM_MODIFY, &niData);
+	m_Connected = FALSE;
 	return;
+}
+std::wstring GetDeviceName(std::wstring serialNo)
+{
+	std::wstring res = ADB::SendCommandToDeviceShell("settings get global device_name", serialNo);
+	if (res == L"FAIL" || res.empty())
+		res = ADB::SendCommandToDeviceShell("getprop ro.product.model", serialNo);
+	replacew(res, L"\n", L"");
+	replacew(res, L"\r", L"");
+	return res;
 }
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -390,6 +404,7 @@ void ShowRightClickMenu(HWND hWnd)
 	AppendMenu(deviceMenu, MF_STRING, IDM_ENABLEDSPL, L"Enable Display");
 	AppendMenu(deviceMenu, MF_STRING, IDM_DISABLEDSPL, L"Disable Display");
 	AppendMenu(deviceMenu, MF_STRING, IDM_RESTARTWIFI, L"Restart WIFI");
+	AppendMenu(deviceMenu, MF_STRING, IDM_REBOOTDEVICE, L"Reboot Device");
 	AppendMenu(deviceMenu, MF_STRING, IDM_OPENSHELL, L"Open Shell");
 	AppendMenu(hMenu, MFS_DISABLED | MF_STRING | MF_DISABLED, NULL, L"AndroDem - " VER);
 	AppendMenu(hMenu, MF_SEPARATOR, NULL, NULL);
@@ -402,7 +417,7 @@ void ShowRightClickMenu(HWND hWnd)
 	AppendMenu(hMenu, MF_STRING, IDM_EXIT, L"E&xit");
 	std::vector<std::wstring> devices = ADB::GetAllDevices();
 	for (size_t i = 0; i < devices.size(); i++)
-		AppendMenu(devicesMenu, MF_STRING | (config.currentDevice == devices[i] ? MF_CHECKED : NULL), (i + 1), devices[i].c_str());
+		AppendMenu(devicesMenu, MF_STRING | (config.currentDevice == devices[i] ? MF_CHECKED : NULL), (i + 1), (GetDeviceName(devices[i]) + L" (" + devices[i] + L")").c_str());
 
 	UINT_PTR clicked = TrackPopupMenu(
 		hMenu,
@@ -418,6 +433,9 @@ void ShowRightClickMenu(HWND hWnd)
 		std::wstring result;
 		switch (clicked)
 		{
+		case IDM_REBOOTDEVICE:
+			ADB::RebootDevice(config.currentDevice);
+			break;
 		case IDM_STARTWITHWINDOWS:
 			config.runOnStartup = !config.runOnStartup;
 			SetAutoStartup(config.runOnStartup);
@@ -478,8 +496,13 @@ void ConnectToDevice(std::wstring& device)
 	}
 	ADB::SendCommandToDeviceShell("svc power stayon true", config.currentDevice, TRUE);
 	std::wstring result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_OFF, config.currentDevice, TRUE);
-	LOGD(result.c_str());
+	LOGD((L"[AndroDem.cpp] " + result).c_str());
+	if (result == L"FAIL") {
+		m_Connected = FALSE;
+		return;
+	}
 	LOGI(std::wstring(L"[AndroDem.cpp] Successfully connected to device: '").append(device).append(L"'").c_str());
+	m_deviceName = GetDeviceName(config.currentDevice);
 	m_Connected = TRUE;
 }
 void DisconnectFromDevice()
@@ -491,4 +514,6 @@ void DisconnectFromDevice()
 	}
 	else if (config.currentDevice.empty())
 		m_Connected = FALSE;
+
+	m_deviceName = L"";
 }
