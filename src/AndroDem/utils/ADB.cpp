@@ -157,9 +157,7 @@ BOOL ADB::AdbRead(char* buf, int size, SOCKET socket)
 }
 void ADB::OpenDeviceShell(std::wstring& serialNumber)
 {
-	std::wstring command = std::wstring(L" -s ").append(serialNumber).append(L" shell").c_str();
-	wchar_t* commandLine = new wchar_t[command.size() + 1];
-	wcscpy_s(commandLine, command.size() + 1, command.c_str());
+	std::wstring command = std::wstring(L" -s ").append(serialNumber).append(L" shell\0").c_str();
 	PROCESS_INFORMATION piProcInfo;
 	STARTUPINFOW siStartInfo;
 	BOOL bSuccess = FALSE;
@@ -169,7 +167,7 @@ void ADB::OpenDeviceShell(std::wstring& serialNumber)
 	ZeroMemory(&siStartInfo, sizeof(STARTUPINFOW));
 	siStartInfo.cb = sizeof(STARTUPINFOW);
 	bSuccess = CreateProcessW(ADB::GetADBPath().c_str(),
-		commandLine,     // command line 
+		(LPWSTR)command.c_str(),     // command line 
 		NULL,          // process security attributes 
 		NULL,          // primary thread security attributes 
 		TRUE,          // handles are inherited 
