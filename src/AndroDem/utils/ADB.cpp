@@ -140,13 +140,15 @@ SOCKET ADB::ConnectSocket(BOOL waitUntillComplete)
 }
 BOOL ADB::AdbWrite(const char* cmd, SOCKET socket)
 {
-	size_t size = strlen(cmd);
+	int size = (int)strlen(cmd);
 	char* szSize = (char*)malloc(5 + size);
 	if (szSize) 
 	{
 		sprintf_s(szSize,5, "%04x", (UINT)size);
 		strcat_s(szSize,5+ size, cmd);
-		return (send(socket, szSize, (int)(size + 4), 0) == size);
+		BOOL res = send(socket, szSize, size + 4, 0) == size;
+		free(szSize);
+		return res;
 	}
 	return FALSE;
 }
@@ -214,11 +216,8 @@ std::wstring ADB::SendCommandToADB(LPCWSTR command)
 	siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
 	siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 	std::wstring res = std::wstring(L" ").append(command);
-	size_t size = res.size();
-	wchar_t* commandLine = new wchar_t[size + 1];
-	wcscpy_s(commandLine, size + 1, res.c_str());
 	bSuccess = CreateProcessW(ADB::GetADBPath().c_str(),
-		commandLine,     // command line 
+		(LPWSTR)res.c_str(),     // command line 
 		NULL,          // process security attributes 
 		NULL,          // primary thread security attributes 
 		TRUE,          // handles are inherited 
