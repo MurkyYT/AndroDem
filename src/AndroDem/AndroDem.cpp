@@ -24,7 +24,8 @@ NOTIFYICONDATA niData;
 HICON hMainIcon, hNoWifiIcon, hLevel0Icon, hLevel1Icon, hLevel2Icon, hLevel3Icon, hLevel4Icon;
 RegistrySettings settings(L"Murky", L"AndroDem");
 Config config;
-BOOL m_Connected = FALSE;
+BOOL connected = FALSE;
+BOOL connecting = FALSE;
 std::wstring m_deviceName;
 #pragma endregion
 
@@ -172,7 +173,7 @@ void UpdateWifiStatus()
 {
 	if (config.currentDevice.empty())
 		return;
-	if (!m_Connected)
+	if (!connected)
 		ConnectToDevice(config.currentDevice);
 	std::wstring wifiStatus = ADB::SendCommandToDeviceShell("dumpsys wifi | grep -E \"mWifiInfo |SignalLevel\"", config.currentDevice,TRUE);
 	std::wstring stringSignalStrength;
@@ -228,14 +229,14 @@ void UpdateWifiStatus()
 		niData.hIcon = hNoWifiIcon;
 		break;
 	}
-	wcscpy_s(niData.szTip, std::wstring(m_deviceName).append(L": ").append(SSID).append(L" (").append(linkSpeed).append(L")").c_str());
+	wcscpy_s(niData.szTip, (m_deviceName + L": " + SSID + L" (" + linkSpeed + L")").c_str());
 	Shell_NotifyIcon(NIM_MODIFY, &niData);
 	return;
 NO_WIFI:
 	niData.hIcon = hNoWifiIcon;
 	wcscpy_s(niData.szTip, L"No wifi found");
 	Shell_NotifyIcon(NIM_MODIFY, &niData);
-	m_Connected = FALSE;
+	connected = FALSE;
 	return;
 }
 std::wstring GetDeviceName(std::wstring serialNo)
@@ -471,49 +472,53 @@ void ShowRightClickMenu(HWND hWnd)
 }
 void ConnectToDevice(std::wstring& device)
 {
+	if (connecting)
+		return;
+	connecting = TRUE;
 	DisconnectFromDevice();
-	if (device == config.currentDevice && m_Connected) {
+	if (device == config.currentDevice && connected) {
 		config.currentDevice = L"";
 		return;
 	}
 	// Windows on auto startup default dir is c:\system32\windows
 	std::wstring path = GetCurrentDir();
-	const wchar_t* buf = path.c_str();
-	std::wstring pushLocal = std::wstring(L"push \"").append(buf).append(L"\\data\\classes.dex\" \"data/local/tmp\"");
+	std::wstring pushLocal = L"push \"" + path + L"\\data\\classes.dex\" \"data/local/tmp\"";
 	config.currentDevice = device;
 	if(ADB::SendCommandToDevice(pushLocal.c_str(), config.currentDevice).find(L"adb: error: failed to copy") != std::string::npos)
 	{
 		//Work around by sending to sdcard then moving using shell to local tmp
-		std::wstring pushSDCard = std::wstring(L"push \"").append(buf).append(L"\\data\\classes.dex\" \"sdcard/\"");
+		std::wstring pushSDCard = L"push \"" + path + L"\\data\\classes.dex\" \"sdcard/\"";
 		ADB::SendCommandToDevice(pushSDCard.c_str(), config.currentDevice);
 		std::wstring result = ADB::SendCommandToDeviceShell("mv \"sdcard/classes.dex\" \"data/local/tmp\"", config.currentDevice);
 		if (result == L"FAIL" || !result.empty())
 		{
 			config.currentDevice = L"";
-			MessageBox(NULL, L"Couldn't push ther server to the device, make sure it is connected and ADB debugging is enabled", L"Error", MB_OK | MB_ICONERROR);
+			MessageBox(NULL, L"Couldn't push the server to the device, make sure it is connected and ADB debugging is enabled", L"Error", MB_OK | MB_ICONERROR);
+			connecting = FALSE;
 			return;
 		}
 	}
 	ADB::SendCommandToDeviceShell("svc power stayon true", config.currentDevice, TRUE);
 	std::wstring result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_OFF, config.currentDevice, TRUE);
 	LOGD((L"[AndroDem.cpp] " + result).c_str());
+	connecting = FALSE;
 	if (result == L"FAIL") {
-		m_Connected = FALSE;
+		connected = FALSE;
 		return;
 	}
 	LOGI(std::wstring(L"[AndroDem.cpp] Successfully connected to device: '").append(device).append(L"'").c_str());
 	m_deviceName = GetDeviceName(config.currentDevice);
-	m_Connected = TRUE;
+	connected = TRUE;
 }
 void DisconnectFromDevice()
 {
-	if (!config.currentDevice.empty() && m_Connected)
+	if (!config.currentDevice.empty() && connected)
 	{
 		std::wstring result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " cleanup", config.currentDevice, TRUE);
 		LOGD(result.c_str());
 	}
 	else if (config.currentDevice.empty())
-		m_Connected = FALSE;
+		connected = FALSE;
 
 	m_deviceName = L"";
 }

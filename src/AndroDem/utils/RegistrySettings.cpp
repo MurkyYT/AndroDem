@@ -21,12 +21,12 @@ std::wstring RegistrySettings::getWideString(const std::string& name)
 	wchar_t* buf;
 	getString(name, (LPCWSTR*)&buf);
 	std::wstring res = std::wstring(buf);
-	free(buf);
+	delete[] buf;
 	return res;
 }
 BOOL RegistrySettings::getString(const std::string& name,LPCWSTR* buf)
 {
-	*buf = L"\0";
+	*buf = new wchar_t[0];
 	std::wstring wValue = s2ws(name);
 	DWORD dwBufSize = 0;
 	DWORD valueType = 0;
@@ -37,7 +37,7 @@ BOOL RegistrySettings::getString(const std::string& name,LPCWSTR* buf)
 	}
 	if (dwBufSize > 0 && valueType == REG_SZ)
 	{
-		*buf = (wchar_t*)malloc(dwBufSize);
+		*buf = new wchar_t[dwBufSize]/*(wchar_t*)malloc(dwBufSize)*/;
 		lRetVal = RegQueryValueExW(m_settingsKey, wValue.c_str(), NULL, NULL,
 			(BYTE*)(*buf), &dwBufSize);
 		return TRUE;
