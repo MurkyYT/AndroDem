@@ -44,7 +44,6 @@ void SaveConfig();
 void ConnectToLastDevice();
 void SetAutoStartup(BOOL enabled);
 BOOL FilesPresent();
-std::wstring GetDeviceName(std::wstring serialNo);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -239,15 +238,6 @@ NO_WIFI:
 	connected = FALSE;
 	return;
 }
-std::wstring GetDeviceName(std::wstring serialNo)
-{
-	std::wstring res = ADB::SendCommandToDeviceShell("settings get global device_name", serialNo);
-	if (res == L"FAIL" || res.empty())
-		res = ADB::SendCommandToDeviceShell("getprop ro.product.model", serialNo);
-	replacew(res, L"\n", L"");
-	replacew(res, L"\r", L"");
-	return res;
-}
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
 	WNDCLASSEXW wcex;
@@ -338,9 +328,9 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		ShutdownBlockReasonDestroy(hWnd);
 		return TRUE;
 	case WM_DESTROY:
-		Shell_NotifyIcon(NIM_DELETE, &niData);
 		DisconnectFromDevice();
 		SaveConfig();
+		Shell_NotifyIcon(NIM_DELETE, &niData);
 		PostQuitMessage(0);
 		break;
 	}
@@ -418,7 +408,7 @@ void ShowRightClickMenu(HWND hWnd)
 	AppendMenu(hMenu, MF_STRING, IDM_EXIT, L"E&xit");
 	std::vector<std::wstring> devices = ADB::GetAllDevices();
 	for (size_t i = 0; i < devices.size(); i++)
-		AppendMenu(devicesMenu, MF_STRING | (config.currentDevice == devices[i] ? MF_CHECKED : NULL), (i + 1), (GetDeviceName(devices[i]) + L" (" + devices[i] + L")").c_str());
+		AppendMenu(devicesMenu, MF_STRING | (config.currentDevice == devices[i] ? MF_CHECKED : NULL), (i + 1), (ADB::GetDeviceName(devices[i]) + L" (" + devices[i] + L")").c_str());
 
 	UINT_PTR clicked = TrackPopupMenu(
 		hMenu,
@@ -447,15 +437,15 @@ void ShowRightClickMenu(HWND hWnd)
 			break;
 		case IDM_ENABLEDSPL:
 			result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_ON, config.currentDevice, TRUE);
-			LOGD(result.c_str());
+			LOGD(result);
 			break;
 		case IDM_DISABLEDSPL:
 			result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_OFF, config.currentDevice, TRUE);
-			LOGD(result.c_str());
+			LOGD(result);
 			break;
 		case IDM_RESTARTWIFI:
 			result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " restart-wifi", config.currentDevice, TRUE);
-			LOGD(result.c_str());
+			LOGD(result);
 			break;
 		case IDM_OPENSHELL:
 			ADB::OpenDeviceShell(config.currentDevice);
@@ -500,14 +490,14 @@ void ConnectToDevice(std::wstring& device)
 	}
 	ADB::SendCommandToDeviceShell("svc power stayon true", config.currentDevice, TRUE);
 	std::wstring result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_OFF, config.currentDevice, TRUE);
-	LOGD((L"[AndroDem.cpp] " + result).c_str());
+	LOGD(result);
 	connecting = FALSE;
 	if (result == L"FAIL") {
 		connected = FALSE;
 		return;
 	}
-	LOGI(std::wstring(L"[AndroDem.cpp] Successfully connected to device: '").append(device).append(L"'").c_str());
-	m_deviceName = GetDeviceName(config.currentDevice);
+	m_deviceName = ADB::GetDeviceName(config.currentDevice);
+	LOGI(std::format(L"[AndroDem.cpp] Successfully connected to device: '{} ({})'",m_deviceName,device));
 	connected = TRUE;
 }
 void DisconnectFromDevice()
@@ -515,7 +505,7 @@ void DisconnectFromDevice()
 	if (!config.currentDevice.empty() && connected)
 	{
 		std::wstring result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " cleanup", config.currentDevice, TRUE);
-		LOGD(result.c_str());
+		LOGD(result);
 	}
 	else if (config.currentDevice.empty())
 		connected = FALSE;

@@ -43,12 +43,11 @@ BOOL Logger::WriteInfo(const wchar_t* text)
 BOOL Logger::Write(const wchar_t* text)
 {
 	FILE* logFile = NULL;
-	std::wstring wPath = GetCurrentDir();
-	std::string path = ws2s(wPath).append("\\log.txt");
-	if (!FileExists(path.c_str()))
-		fopen_s(&logFile, path.c_str(), "w+ ,ccs=UTF-16LE");
+	std::wstring wPath = GetCurrentDir() + L"\\log.txt";
+	if (!FileExists(wPath.c_str()))
+		_wfopen_s(&logFile, wPath.c_str(), L"w+ ,ccs=UTF-16LE");
 	else
-		fopen_s(&logFile, path.c_str(), "a+ ,ccs=UTF-16LE");
+		_wfopen_s(&logFile, wPath.c_str(), L"a+ ,ccs=UTF-16LE");
 	if (logFile == NULL)
 		return -1;
 	int success = fputws(text,logFile);

@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include <format>
 #include "StringUtils.h"
 #include "Logger.h"
 #define HexDigit(c) (((c>='0') && (c<='9')) ? c-'0' : ((c>='a') && (c<='f')) ? c-'a'+10 :((c>='A') && (c<='F')) ? c-'A'+10 : 0)
@@ -21,6 +22,7 @@ public:
 	static std::wstring SendCommandToDevice(LPCWSTR command, std::wstring& serialNumber);
 	static std::wstring SendCommandToADB(LPCWSTR command);
 	static void RebootDevice(std::wstring& serialNumber);
+	static std::wstring GetDeviceName(std::wstring& serialNumber);
 private:
 	static std::wstring m_adbPath;
 	static BOOL AdbWrite(const char* cmd,SOCKET socket);

@@ -4,6 +4,15 @@
 #pragma comment(lib, "Ws2_32.lib")
 std::wstring ADB::m_adbPath;
 BOOL ADB::m_WSAInitialized = FALSE;
+std::wstring ADB::GetDeviceName(std::wstring& serialNumber)
+{
+	std::wstring res = ADB::SendCommandToDeviceShell("settings get global device_name", serialNumber);
+	if (res == L"FAIL" || res.empty())
+		res = ADB::SendCommandToDeviceShell("getprop ro.product.model", serialNumber);
+	replacew(res, L"\n", L"");
+	replacew(res, L"\r", L"");
+	return res;
+}
 std::vector<std::wstring> ADB::GetAllDevices()
 {
 	std::vector<std::wstring> result = std::vector<std::wstring>();
@@ -57,7 +66,7 @@ std::wstring ADB::SendCommandToDeviceShell(LPCSTR command, std::wstring& serialN
 	AdbWrite(transport.c_str(), adb_soc);
 	if (!AdbRead(szSize, 4, adb_soc) || memcmp(szSize, "OKAY", 4))
 		goto FAIL;
-	LOGD(std::wstring(L"[ADB.cpp] Succesfully targeted device: '").append(serialNumber).append(L"'").c_str());
+	LOGD(std::format(L"[ADB.cpp] Succesfully targeted device: '{}'", serialNumber));
 	AdbWrite(commandChar.c_str(), adb_soc);
 	if (!AdbRead(szSize, 4, adb_soc) || memcmp(szSize, "OKAY", 4))
 		goto FAIL;
@@ -65,7 +74,7 @@ std::wstring ADB::SendCommandToDeviceShell(LPCSTR command, std::wstring& serialN
 	while (AdbRead(&c, 1, adb_soc))
 		szTmp += c;
 	closesocket(adb_soc);
-	LOGD(std::wstring(L"[ADB.cpp] Succesfully sent '").append(commandChar.begin(), commandChar.end()).append(L"'").c_str());
+	LOGD(std::format(L"[ADB.cpp] Succesfully sent '{}'", std::wstring(commandChar.begin(), commandChar.end())));
 	return szTmp;
 FAIL:
 	return std::wstring(L"FAIL");
@@ -91,7 +100,7 @@ std::wstring ADB::SendCommandToNativeADB(LPCSTR command,BOOL waitUntillComplete)
 	while (nSize-- && AdbRead(&c, 1, adb_soc))
 		szTmp += c;
 	closesocket(adb_soc);
-	LOGD(std::wstring(L"[ADB.cpp] Succesfully sent '").append(commandStr.begin(), commandStr.end()).append(L"'").c_str());
+	LOGD(std::format(L"[ADB.cpp] Succesfully sent '{}'", std::wstring(commandStr.begin(),commandStr.end())));
 	return szTmp;
 EXIT:
 	return std::wstring();
@@ -245,7 +254,7 @@ std::wstring ADB::SendCommandToADB(LPCWSTR command)
 	}
 	if (g_hChildStd_OUT_Rd != INVALID_HANDLE_VALUE && g_hChildStd_OUT_Rd)
 		CloseHandle(g_hChildStd_OUT_Rd);
-	LOGD(std::wstring(L"[ADB.cpp] Succesfully sent '").append(command).append(L"'").c_str());
+	LOGD(std::format(L"[ADB.cpp] Succesfully sent '{}'",command));
 	return std::wstring(resultBuf.begin(),resultBuf.end());
 }
 std::wstring ADB::GetADBPath()
