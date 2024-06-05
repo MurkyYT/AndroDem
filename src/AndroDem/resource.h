@@ -1,7 +1,7 @@
 // Used by AndroDem.rc
 //
-#define VER "1.0.2"
-#define COMMA_VER 1,0,2
+#define VER "1.0.3"
+#define COMMA_VER 1,0,3
 #define IDI_ANDRODEM                    100
 #define IDI_LEVEL0WIFI                  101
 #define IDI_LEVEL1WIFI                  102

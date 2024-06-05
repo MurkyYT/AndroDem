@@ -8,10 +8,10 @@
 #include <windows.h>
 #include <vector>
 #include "utils/ADB.h"
-#include "resource.h"
 #include "utils/Logger.h"
 #include "utils/StringUtils.h"
 #include "utils/RegistrySettings.h"
 #include "utils/WindowsUtils.h"
-#include "config.h"
 #include "utils/DarkMode.h"
+#include "config.h"
+#include "resource.h"
