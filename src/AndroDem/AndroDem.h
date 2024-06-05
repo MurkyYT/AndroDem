@@ -7,7 +7,6 @@
 #include <iostream>
 #include <windows.h>
 #include <vector>
-#include <format>
 #include "utils/ADB.h"
 #include "resource.h"
 #include "utils/Logger.h"

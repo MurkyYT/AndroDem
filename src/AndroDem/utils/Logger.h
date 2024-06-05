@@ -6,8 +6,8 @@
 #include "WindowsUtils.h"
 #include "StringUtils.h"
 
-#define LOGD(text) if(Logger::Level == DEBUG || Logger::Level == VERBOSE) Logger::WriteDebug(text);
-#define LOGI(text) Logger::WriteInfo(text);
+#define LOGD(text) if(Logger::Level == DEBUG || Logger::Level == VERBOSE) Logger::WriteDebug(text)
+#define LOGI(text) Logger::WriteInfo(text)
 
 enum LogLevel
 {

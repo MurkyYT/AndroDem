@@ -2,7 +2,6 @@
 #include <windows.h>
 #include <string>
 #include <vector>
-#include <format>
 #include "StringUtils.h"
 #include "Logger.h"
 #define HexDigit(c) (((c>='0') && (c<='9')) ? c-'0' : ((c>='a') && (c<='f')) ? c-'a'+10 :((c>='A') && (c<='F')) ? c-'A'+10 : 0)
