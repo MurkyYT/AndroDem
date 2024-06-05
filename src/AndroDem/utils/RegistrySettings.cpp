@@ -63,10 +63,9 @@ BOOL RegistrySettings::getBool(const std::string& name, BOOL* buf)
 			(LPBYTE)pBuffer, &dwBufSize);
 		if (*pBuffer == 0)
 			*buf = FALSE;
-		else if (*pBuffer == 1)
-			*buf = TRUE;
 		else
-			return FALSE;
+			*buf = TRUE;
+		delete[] pBuffer;
 		return TRUE;
 	}
 	return FALSE;;
@@ -85,7 +84,6 @@ BOOL RegistrySettings::getDWORD(const std::string& name, DWORD* buf)
 	}
 	if (dwBufSize > 0 && valueType == REG_DWORD)
 	{
-		*buf = (DWORD)malloc(dwBufSize);
 		lRetVal = RegQueryValueExW(m_settingsKey, wValue.c_str(), NULL, NULL,
 			(LPBYTE)buf, &dwBufSize);
 		return TRUE;

@@ -497,7 +497,7 @@ void ConnectToDevice(std::wstring& device)
 		return;
 	}
 	m_deviceName = ADB::GetDeviceName(config.currentDevice);
-	LOGI(L"[AndroDem.cpp] Successfully connected to device: '"+ m_deviceName + L" (" +device + L"})'");
+	LOGI(L"[AndroDem.cpp] Successfully connected to device: '"+ m_deviceName + L" (" +device + L")'");
 	connected = TRUE;
 }
 void DisconnectFromDevice()
