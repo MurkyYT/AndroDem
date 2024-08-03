@@ -33,13 +33,21 @@ IDI_ANDRODEM            ICON                    "icons\\main.ico"
 
 IDI_LEVEL0WIFI          ICON                    "icons\\Level0Wifi.ico"
 
-IDI_LEVEL1WIFI          ICON                    "icons\\Level1Wifi.ico"
+IDI_LEVEL1WIFI_DARK          ICON                    "icons\\Level1Wifi.ico"
 
-IDI_LEVEL2WIFI          ICON                    "icons\\Level2Wifi.ico"
+IDI_LEVEL1WIFI_LIGHT          ICON                    "icons\\Level1Wifi_Light.ico"
 
-IDI_LEVEL3WIFI          ICON                    "icons\\Level3Wifi.ico"
+IDI_LEVEL2WIFI_DARK          ICON                    "icons\\Level2Wifi.ico"
 
-IDI_LEVEL4WIFI          ICON                    "icons\\Level4Wifi.ico"
+IDI_LEVEL2WIFI_LIGHT          ICON                    "icons\\Level2Wifi_Light.ico"
+
+IDI_LEVEL3WIFI_DARK          ICON                    "icons\\Level3Wifi.ico"
+
+IDI_LEVEL3WIFI_LIGHT          ICON                    "icons\\Level3Wifi_Light.ico"
+
+IDI_LEVEL4WIFI_DARK          ICON                    "icons\\Level4Wifi.ico"
+
+IDI_LEVEL4WIFI_LIGHT          ICON                    "icons\\Level4Wifi_Light.ico"
 
 IDI_NOWIFI              ICON                    "icons\\NoWifi.ico"
 //

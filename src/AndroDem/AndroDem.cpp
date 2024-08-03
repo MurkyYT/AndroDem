@@ -12,6 +12,10 @@
 #define WM_TRAY (WM_USER+1)
 #define TRAY_ICON_ID 0xEB6E16
 #define TIMER_POLL 1000// in ms
+#define hLevel4Icon IsDarkMode() ? hLevel4Icon_Dark : hLevel4Icon_Light;
+#define hLevel3Icon IsDarkMode() ? hLevel3Icon_Dark : hLevel3Icon_Light;
+#define hLevel2Icon IsDarkMode() ? hLevel2Icon_Dark : hLevel2Icon_Light;
+#define hLevel1Icon IsDarkMode() ? hLevel1Icon_Dark : hLevel1Icon_Light;
 #pragma endregion
 #pragma region Consts
 CONST UINT WM_TASKBARCREATED = RegisterWindowMessage(TEXT("TaskbarCreated"));
@@ -21,7 +25,7 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 NOTIFYICONDATA niData;
-HICON hMainIcon, hNoWifiIcon, hLevel0Icon, hLevel1Icon, hLevel2Icon, hLevel3Icon, hLevel4Icon;
+HICON hMainIcon, hNoWifiIcon, hLevel0Icon, hLevel1Icon_Dark, hLevel1Icon_Light, hLevel2Icon_Dark, hLevel2Icon_Light, hLevel3Icon_Dark, hLevel3Icon_Light, hLevel4Icon_Dark, hLevel4Icon_Light;
 RegistrySettings settings(L"Murky", L"AndroDem");
 Config config;
 BOOL connected = FALSE;
@@ -357,26 +361,50 @@ void LoadIcons()
 		GetSystemMetrics(SM_CXSMICON),
 		GetSystemMetrics(SM_CYSMICON),
 		LR_LOADTRANSPARENT);
-	hLevel1Icon = (HICON)LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_LEVEL1WIFI),
+	hLevel1Icon_Dark = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL1WIFI_DARK),
 		IMAGE_ICON,
 		GetSystemMetrics(SM_CXSMICON),
 		GetSystemMetrics(SM_CYSMICON),
 		LR_LOADTRANSPARENT);
-	hLevel2Icon = (HICON)LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_LEVEL2WIFI),
+	hLevel1Icon_Light = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL1WIFI_LIGHT),
 		IMAGE_ICON,
 		GetSystemMetrics(SM_CXSMICON),
 		GetSystemMetrics(SM_CYSMICON),
 		LR_LOADTRANSPARENT);
-	hLevel3Icon = (HICON)LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_LEVEL3WIFI),
+	hLevel2Icon_Dark = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL2WIFI_DARK),
 		IMAGE_ICON,
 		GetSystemMetrics(SM_CXSMICON),
 		GetSystemMetrics(SM_CYSMICON),
 		LR_LOADTRANSPARENT);
-	hLevel4Icon = (HICON)LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_LEVEL4WIFI),
+	hLevel2Icon_Light = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL2WIFI_LIGHT),
+		IMAGE_ICON,
+		GetSystemMetrics(SM_CXSMICON),
+		GetSystemMetrics(SM_CYSMICON),
+		LR_LOADTRANSPARENT);
+	hLevel3Icon_Dark = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL3WIFI_DARK),
+		IMAGE_ICON,
+		GetSystemMetrics(SM_CXSMICON),
+		GetSystemMetrics(SM_CYSMICON),
+		LR_LOADTRANSPARENT);
+	hLevel3Icon_Light = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL3WIFI_LIGHT),
+		IMAGE_ICON,
+		GetSystemMetrics(SM_CXSMICON),
+		GetSystemMetrics(SM_CYSMICON),
+		LR_LOADTRANSPARENT);
+	hLevel4Icon_Dark = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL4WIFI_DARK),
+		IMAGE_ICON,
+		GetSystemMetrics(SM_CXSMICON),
+		GetSystemMetrics(SM_CYSMICON),
+		LR_LOADTRANSPARENT);
+	hLevel4Icon_Light = (HICON)LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_LEVEL4WIFI_LIGHT),
 		IMAGE_ICON,
 		GetSystemMetrics(SM_CXSMICON),
 		GetSystemMetrics(SM_CYSMICON),
@@ -459,6 +487,7 @@ void ShowRightClickMenu(HWND hWnd)
 			break;
 		}
 	}
+	DestroyMenu(hMenu);
 }
 void ConnectToDevice(std::wstring& device)
 {
