@@ -321,10 +321,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		}
 		break;
 	}
-	default:
-		if (uMsg == WM_TASKBARCREATED)
-			Shell_NotifyIcon(NIM_ADD, &niData);
-		break;
 	case WM_QUERYENDSESSION:
 		ShutdownBlockReasonCreate(hWnd, L"Cleaning device...");
 		DisconnectFromDevice();
@@ -336,6 +332,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		SaveConfig();
 		Shell_NotifyIcon(NIM_DELETE, &niData);
 		PostQuitMessage(0);
+		break;
+	default:
+		if (uMsg == WM_TASKBARCREATED)
+			Shell_NotifyIcon(NIM_ADD, &niData);
 		break;
 	}
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -429,6 +429,7 @@ void ShowRightClickMenu(HWND hWnd)
 	AppendMenu(hMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(hMenu, MF_STRING | (config.runOnStartup ? MF_CHECKED : NULL), IDM_STARTWITHWINDOWS, L"Start With Windows");
 	AppendMenu(hMenu, MF_STRING | (config.saveLogs ? MF_CHECKED : NULL), IDM_SAVELOGS, L"Save Logs");
+	AppendMenu(hMenu, MF_STRING , IDM_DUMP_INFO, L"Dump Info");
 	AppendMenu(hMenu, MF_STRING | MF_POPUP | (config.currentDevice.empty() ? MFS_GRAYED | MF_DISABLED : NULL), (UINT_PTR)deviceMenu, L"Device Options");
 	AppendMenu(hMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT_PTR)devicesMenu, L"Select Device");
@@ -452,6 +453,50 @@ void ShowRightClickMenu(HWND hWnd)
 		std::wstring result;
 		switch (clicked)
 		{
+		case IDM_DUMP_INFO:
+		{
+			FILE* file = NULL;
+			std::wstring wPath = GetCurrentDir() + L"\\androdem_info.dump";
+			_wfopen_s(&file, wPath.c_str(), L"w+ ,ccs=UTF-16LE");
+			if (file == NULL)
+				break;
+
+			fputws(L"AndroDem dump:\n", file);
+			fputws(L"Version: v", file);
+			fputws(L"" VER "\n", file);
+			fputws(L"ADB Path: ", file);
+			fputws((ADB::GetADBPath() + L"\n").c_str(), file);
+			fputws(L"Built at: ", file);
+			fputws(std::wstring(L"" __DATE__ " " __TIME__ "\n").c_str(), file);
+			fputws(L"\nDevice dump:\n", file);
+			fputws(L"Is connected: ", file);
+			fputws(connected ? L"Yes\n" : L"No\n", file);
+			fputws(L"Is connecting: ", file);
+			fputws(connecting ? L"Yes\n" : L"No\n", file);
+			fputws(L"Device serial: ", file);
+			fputws((config.currentDevice + L"\n").c_str(), file);
+			fputws(L"Device name: ", file);
+			fputws((m_deviceName + L"\n").c_str(), file);
+			fputws(L"Android version: ", file);
+			fputws(ADB::SendCommandToDeviceShell("getprop ro.build.version.release", config.currentDevice, TRUE).c_str(), file);
+			fputws(L"Android API level: ", file);
+			fputws(ADB::SendCommandToDeviceShell("getprop ro.build.version.sdk", config.currentDevice, TRUE).c_str(), file);
+			fputws(L"Is server present: ", file);
+			fputws(ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " help", config.currentDevice, TRUE).substr(0,7) != L"Aborted" ? L"Yes\n" : L"No\n", file);
+			fputws(L"\nWifi dump:\n", file);
+			fputws(ADB::SendCommandToDeviceShell("dumpsys wifi | grep -E \"mWifiInfo |SignalLevel\"", config.currentDevice, TRUE).c_str(), file);
+			fclose(file);
+
+			std::wstring folder = GetCurrentDir();
+			ITEMIDLIST* dir = ILCreateFromPathW(folder.c_str());
+			LPITEMIDLIST items[1];
+			items[0] = ILCreateFromPathW((folder + L"\\androdem_info.dump").c_str());
+
+			SHOpenFolderAndSelectItems(dir, (unsigned int)1, (LPCITEMIDLIST*)items, 0);
+			ILFree(dir);
+			ILFree(items[0]);
+		}
+		break;
 		case IDM_REBOOTDEVICE:
 			ADB::RebootDevice(config.currentDevice);
 			break;

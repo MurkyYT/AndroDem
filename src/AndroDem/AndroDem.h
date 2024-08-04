@@ -6,6 +6,7 @@
 #define UNICODE
 #include <iostream>
 #include <windows.h>
+#include <shlobj_core.h>
 #include <vector>
 #include "utils/ADB.h"
 #include "utils/Logger.h"
