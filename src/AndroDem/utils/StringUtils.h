@@ -1,7 +1,5 @@
 #pragma once
 #include <string>
-#include <locale>
-#include <codecvt>
 
 bool replace(std::string& str, const char* from, const char* to);
 bool replacew(std::wstring& str, const wchar_t* from, const wchar_t* to);

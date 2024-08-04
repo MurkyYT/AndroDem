@@ -94,7 +94,7 @@ void RegistrySettings::set(const std::string& name, LPCWSTR value)
 {
 	LSTATUS stat;
 	if(m_settingsKey)
-		stat = RegSetValueExW(m_settingsKey, s2ws(name).c_str(), 0,REG_SZ, reinterpret_cast<const BYTE*>(value), wcslen(value) * sizeof(wchar_t));
+		stat = RegSetValueExW(m_settingsKey, s2ws(name).c_str(), 0,REG_SZ, reinterpret_cast<const BYTE*>(value), (DWORD)(wcslen(value) * sizeof(wchar_t)));
 }
 void RegistrySettings::set(const std::string& name, BOOL value)
 {
