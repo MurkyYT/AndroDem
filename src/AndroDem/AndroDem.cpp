@@ -39,6 +39,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
 void ShowRightClickMenu(HWND hWnd);
 void ConnectToDevice(std::wstring& device);
+void PushClasses(const std::wstring& device, BOOL& failed);
 void DisconnectFromDevice();
 DWORD WINAPI TimerProc();
 void UpdateWifiStatus();
@@ -55,7 +56,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_ int       nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(nCmdShow);
+
 	LoadConfig();
 	if (!FilesPresent())
 	{
@@ -102,7 +104,7 @@ void ParseArgv(LPWSTR lpCmdLine)
 	LPWSTR* argv = CommandLineToArgvW(lpCmdLine, &argc);
 	for (int i = 0; i < argc; i++)
 	{
-		if (lstrcmpi(argv[i],L"--verbose") == 0) {
+		if (lstrcmpi(argv[i], L"--verbose") == 0) {
 			Logger::Level = VERBOSE;
 			LOGI(L"Running in verbose mode");
 		}
@@ -111,11 +113,10 @@ void ParseArgv(LPWSTR lpCmdLine)
 BOOL FilesPresent()
 {
 	std::wstring path = GetCurrentDir();
-	const wchar_t* buf = path.c_str();
 	std::wstring adbExe = ADB::GetADBPath();
-	std::wstring adbApiDLL = std::wstring(buf).append(L"\\data\\AdbWinApi.dll");
-	std::wstring adbApiUSBDLL = std::wstring(buf).append(L"\\data\\AdbWinUsbApi.dll");
-	std::wstring classesDex = std::wstring(buf).append(L"\\data\\classes.dex");
+	std::wstring adbApiDLL = path + L"\\data\\AdbWinApi.dll";
+	std::wstring adbApiUSBDLL = path + L"\\data\\AdbWinUsbApi.dll";
+	std::wstring classesDex = path + L"\\data\\classes.dex";
 
 	return FileExists(adbExe.c_str())
 		&& FileExists(adbApiDLL.c_str())
@@ -178,7 +179,7 @@ void UpdateWifiStatus()
 		return;
 	if (!connected)
 		ConnectToDevice(config.currentDevice);
-	std::wstring wifiStatus = ADB::SendCommandToDeviceShell("dumpsys wifi | grep -E \"mWifiInfo |SignalLevel\"", config.currentDevice,TRUE);
+	std::wstring wifiStatus = ADB::SendCommandToDeviceShell("dumpsys wifi | grep -E \"mWifiInfo |SignalLevel\"", config.currentDevice, TRUE);
 	std::wstring stringSignalStrength;
 	std::wstring SSID;
 	std::wstring linkSpeed;
@@ -192,11 +193,11 @@ void UpdateWifiStatus()
 		goto NO_WIFI;
 	//Start from lastsignalindex + length of "mLastSignalLevel " untill lastsignalindex + length of "mLastSignalLevel " + "\r\n" length
 	stringSignalStrength = wifiStatus.substr(lastSignalIndex + 17, lastSignalIndex + 17 + 2);
-	/*Start from SSID index + length of "SSID: " untill index of "," minus the(SSID index + the length of ssid index) 
+	/*Start from SSID index + length of "SSID: " untill index of "," minus the(SSID index + the length of ssid index)
 	* to find the length of the ssid name
 	* example:
 	* "SSID: ExampleWifi,"
-	* from (0 + 6) untill (17 - (0 + 6)) = 11 which is the length of ExampleWifi  
+	* from (0 + 6) untill (17 - (0 + 6)) = 11 which is the length of ExampleWifi
 	*/
 	SSID = wifiStatus.substr(wifiStatus.find(L"SSID: ") + 6, wifiStatus.find(L",") - (wifiStatus.find(L"SSID: ") + 6));
 	/*
@@ -294,11 +295,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		niData.hIcon = hMainIcon;
 
 		niData.hWnd = hWnd;
-		//niData.dwInfoFlags = NIIF_INFO;
+
 		niData.uTimeout = 10000;
 		niData.uVersion = NOTIFYICON_VERSION_4;
-		//wcsncpy_s(niData.szInfoTitle, 64, L"Title for balloon", 64);
-		//wcsncpy_s(niData.szInfo, 256, L"Body for balloon", 256);
+
 		niData.uCallbackMessage = WM_TRAY;
 		wcscpy_s(niData.szTip, L"AndroDem");
 
@@ -465,15 +465,36 @@ void ShowRightClickMenu(HWND hWnd)
 			break;
 		case IDM_ENABLEDSPL:
 			result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_ON, config.currentDevice, TRUE);
-			LOGD(result);
+			if (result.substr(0, 7) == L"Aborted") {
+				BOOL failed;
+				PushClasses(config.currentDevice, failed);
+				MessageBox(hWnd, L"An error ocurred while sending command to the phone, please try again", L"Error", MB_OK | MB_ICONERROR);
+				LOGI((L"[AndroDem.cpp] Server execution error: " + result));
+			}
+			else
+				LOGI(result);
 			break;
 		case IDM_DISABLEDSPL:
 			result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_OFF, config.currentDevice, TRUE);
-			LOGD(result);
+			if (result.substr(0,7) == L"Aborted") {
+				BOOL failed;
+				PushClasses(config.currentDevice, failed);
+				MessageBox(hWnd, L"An error ocurred while sending command to the phone, please try again", L"Error", MB_OK | MB_ICONERROR);
+				LOGI((L"[AndroDem.cpp] Server execution error: " + result));
+			}
+			else
+				LOGI(result);
 			break;
 		case IDM_RESTARTWIFI:
 			result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " restart-wifi", config.currentDevice, TRUE);
-			LOGD(result);
+			if (result.substr(0, 7) == L"Aborted") {
+				BOOL failed;
+				PushClasses(config.currentDevice, failed);
+				MessageBox(hWnd, L"An error ocurred while sending command to the phone, please try again", L"Error", MB_OK | MB_ICONERROR);
+				LOGI((L"[AndroDem.cpp] Server execution error: " + result));
+			}
+			else
+				LOGI(result);
 			break;
 		case IDM_OPENSHELL:
 			ADB::OpenDeviceShell(config.currentDevice);
@@ -483,7 +504,7 @@ void ShowRightClickMenu(HWND hWnd)
 			break;
 		default:
 			if (clicked - 1 < devices.size())
-				ConnectToDevice(devices[clicked-1]);
+				ConnectToDevice(devices[clicked - 1]);
 			break;
 		}
 	}
@@ -499,24 +520,10 @@ void ConnectToDevice(std::wstring& device)
 		config.currentDevice = L"";
 		return;
 	}
-	// Windows on auto startup default dir is c:\system32\windows
-	std::wstring path = GetCurrentDir();
-	std::wstring pushLocal = L"push \"" + path + L"\\data\\classes.dex\" \"data/local/tmp\"";
-	config.currentDevice = device;
-	if(ADB::SendCommandToDevice(pushLocal.c_str(), config.currentDevice).find(L"adb: error: failed to copy") != std::string::npos)
-	{
-		//Work around by sending to sdcard then moving using shell to local tmp
-		std::wstring pushSDCard = L"push \"" + path + L"\\data\\classes.dex\" \"sdcard/\"";
-		ADB::SendCommandToDevice(pushSDCard.c_str(), config.currentDevice);
-		std::wstring result = ADB::SendCommandToDeviceShell("mv \"sdcard/classes.dex\" \"data/local/tmp\"", config.currentDevice);
-		if (result == L"FAIL" || !result.empty())
-		{
-			config.currentDevice = L"";
-			MessageBox(NULL, L"Couldn't push the server to the device, make sure it is connected and ADB debugging is enabled", L"Error", MB_OK | MB_ICONERROR);
-			connecting = FALSE;
-			return;
-		}
-	}
+	
+	BOOL failed;
+	PushClasses(device, failed);
+	if (failed) return;
 	ADB::SendCommandToDeviceShell("svc power stayon true", config.currentDevice, TRUE);
 	std::wstring result = ADB::SendCommandToDeviceShell(ADB_SERVER_EXECUTE " display " DISPLAY_MODE_OFF, config.currentDevice, TRUE);
 	LOGD(result);
@@ -526,8 +533,35 @@ void ConnectToDevice(std::wstring& device)
 		return;
 	}
 	m_deviceName = ADB::GetDeviceName(config.currentDevice);
-	LOGI(L"[AndroDem.cpp] Successfully connected to device: '"+ m_deviceName + L" (" +device + L")'");
+	LOGI(L"[AndroDem.cpp] Successfully connected to device: '" + m_deviceName + L" (" + device + L")'");
 	connected = TRUE;
+}
+void PushClasses(const std::wstring& device, BOOL& failed)
+{
+	failed = true;
+	LOGI(L"[AndroDem.cpp] Pushing classes to the android device");
+	std::wstring path = GetCurrentDir();
+	std::string rmOld = "rm \"data/local/tmp/classes.dex\"";
+	ADB::SendCommandToDeviceShell(rmOld.c_str(), config.currentDevice);
+	std::wstring pushLocal = L"push \"" + path + L"\\data\\classes.dex\" \"data/local/tmp\"";
+	config.currentDevice = device;
+	if (ADB::SendCommandToDevice(pushLocal.c_str(), config.currentDevice).find(L"adb: error: failed to copy") != std::string::npos)
+	{
+		//Work around by sending to sdcard then moving using shell to local tmp
+		LOGI(L"[AndroDem.cpp] Trying to push via the sdcard");
+		std::wstring pushSDCard = L"push \"" + path + L"\\data\\classes.dex\" \"sdcard/\"";
+		ADB::SendCommandToDevice(pushSDCard.c_str(), config.currentDevice);
+		std::wstring result = ADB::SendCommandToDeviceShell("mv \"sdcard/classes.dex\" \"data/local/tmp\"", config.currentDevice);
+		if (result == L"FAIL" || !result.empty())
+		{
+			LOGI(L"[AndroDem.cpp] Pushing the classes failed, aborting connection");
+			config.currentDevice = L"";
+			MessageBox(NULL, L"Couldn't push the server to the device, make sure it is connected and ADB debugging is enabled", L"Error", MB_OK | MB_ICONERROR);
+			connecting = FALSE;
+			return;
+		}
+	}
+	failed = false;
 }
 void DisconnectFromDevice()
 {

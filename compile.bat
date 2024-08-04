@@ -13,4 +13,7 @@ ISCC.exe installerx86.iss
 ISCC.exe installerx64.iss
 tar -caf Output\AndroDem_x86.zip data -C src\AndroDem\build32\Release\ *.exe
 tar -caf Output\AndroDem_x64.zip data -C src\AndroDem\build64\Release\ *.exe
+echo =====================================================
+echo Done
+echo =====================================================
 pause > nul
