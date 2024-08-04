@@ -15,11 +15,12 @@
 ## Features
 
 - Can select device from connected devices
-- Disables phone screen when connecting
-- Shows wifi status info and phone name: {PhoneName}: {SSID} ({LinkSpeed})
-- Can open device shell
-- Can enable/disable device display
-- Can restart device WiFi
+- Disables device's screen when connecting
+- Show wifi status of the connected device ({PhoneName}: {SSID} ({LinkSpeed}))
+- Open connected device's shell
+- Enable/disable connected device's display
+- Restart connected device's WiFi
+- Reboot connected device
 
 ## Screenshots
 ![right-click-menu](Images/menuimage.png)
