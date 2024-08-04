@@ -16,7 +16,7 @@
 
 - Can select device from connected devices
 - Disables device's screen when connecting
-- Show wifi status info and phone name about the connected device ({PhoneName}: {SSID} ({LinkSpeed}))
+- Show wifi status of the connected device ({PhoneName}: {SSID} ({LinkSpeed}))
 - Open connected device's shell
 - Enable/disable connected device's display
 - Restart connected device's WiFi
