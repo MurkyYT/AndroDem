@@ -518,6 +518,7 @@ void ConnectToDevice(std::wstring& device)
 	DisconnectFromDevice();
 	if (device == config.currentDevice && connected) {
 		config.currentDevice = L"";
+		connecting = FALSE;
 		return;
 	}
 	
