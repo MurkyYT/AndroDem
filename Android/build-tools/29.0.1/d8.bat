@@ -23,7 +23,7 @@ REM and set up progdir to be the fully-qualified pathname of its directory.
 set prog=%~f0
 
 rem Check we have a valid Java.exe in the path.
-set java_exe=c:\Program Files\Java\jdk1.8.0_321\bin\java.exe
+set java_exe=C:\Program Files (x86)\Common Files\Oracle\Java\java8path\java.exe
 REM if exist    "%~dp0..\tools\lib\find_java.bat" call    "%~dp0..\tools\lib\find_java.bat"
 REM if exist "%~dp0..\..\tools\lib\find_java.bat" call "%~dp0..\..\tools\lib\find_java.bat"
 if not defined java_exe goto :EOF

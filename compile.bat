@@ -1,8 +1,8 @@
-@call "VsDevCmd.bat"
+@echo OFF
 cmake src\AndroDem -A Win32 -B "src\AndroDem\build32"
-cd  src\AndroDem\build32
+cd src\AndroDem\build32
 msbuild AndroDem.sln  /p:Configuration="Release"
-cd..
+cd ..
 cmake -A x64 -B "build64"
 cd build64
 msbuild AndroDem.sln  /p:Configuration="Release"

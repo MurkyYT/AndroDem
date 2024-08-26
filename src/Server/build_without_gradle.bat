@@ -30,4 +30,4 @@ cd ..\java
 
 echo Dexing...
 cd "%CLASSES_DIR%"
-"%ANDROID_HOME%\build-tools\%BUILD_TOOLS%\d8" --classpath "%ANDROID_JAR%" com\murky\androdem\\*.class --output "%SERVER_DIR%\..\..\data"
+"%ANDROID_HOME%\build-tools\%BUILD_TOOLS%\d8" --classpath "%ANDROID_JAR%" "%BUILD_DIR%\classes\com\murky\androdem\\*.class" --output "%SERVER_DIR%\..\..\data"
